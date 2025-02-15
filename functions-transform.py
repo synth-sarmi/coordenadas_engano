@@ -23,7 +23,7 @@ def load_dic():
     Load csv with initial values for characters
     '''
     # leemos el csv
-    df = pd.read_csv('~/Downloads/diccionario_letras.csv')
+    df = pd.read_csv('./diccionario_letras.csv')
 
     # conversión a dict usando la función de pandas
     rows = df.to_dict(orient='records')
@@ -48,7 +48,7 @@ def walk_path(text, d):
     For each dictionary of values, walk the path of the string.  
     Return paths. 
     '''
-    transf_ch = [d[chr] for chr in chrctrs]
+    transf_ch = [d[chr] for chr in text]
 
     # Load dictionary 
     path_x = [0]
