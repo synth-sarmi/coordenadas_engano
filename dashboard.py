@@ -7,8 +7,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import random
-random.seed(666)
-
 
 # ------------- EN EL PRIMER BLOQUE DEFINIMOS LAS FUNCIONES QUE HACEN -------------
 # 1. PREPROC
@@ -145,12 +143,21 @@ def visualize(dwalks, alt, t):
 def main():
     st.title("Convertidor de texto a coordenadas El Engaño")
 
+    # Initialize session state
+    if 'walks' not in st.session_state:
+        st.session_state.walks = None
+
     # Input text box
     user_text = st.text_area("Texto a convertir:", "Ejemplo de un texto que no tiene mucho que decir, pero que saca la chamba.")
 
     if st.button("Generar coordenadas"):
+        # Set random seed before generating coordinates
+        random.seed(666)
         # traerse todos los walks
-        walks = transform_text(user_text)
+        st.session_state.walks = transform_text(user_text)
+        
+    if st.session_state.walks is not None:
+        walks = st.session_state.walks
         
         # First, create the tabs
         tab_main, tab_alt1, tab_alt2, tab_alt3 = st.tabs(["Main Walk", "Alternative 1", "Alternative 2", "Alternative 3"])
@@ -177,20 +184,26 @@ def main():
                 st.pyplot(fig)
                 plt.close(fig)  # Clean up the figure
 
-                # Create dataframe for download
-                df = pd.DataFrame({
-                    'x': current_walk_data['pathx'],
-                    'y': current_walk_data['pathy']
-                })
-
-                # Download button for each walk
-                csv = df.to_csv(index=False)
-                st.download_button(
-                    label=f"Bajar {current_walk_name} como CSV",
-                    data=csv,
-                    file_name=f"coordenadas_{current_walk_name.replace(' ', '_')}.csv",
-                    mime="text/csv"
-                )
+        # Create a single DataFrame with all walks
+        all_walks_data = []
+        for walk_name, walk_data in walk_items:
+            df = pd.DataFrame({
+                'x': walk_data['pathx'],
+                'y': walk_data['pathy']
+            })
+            df['walk_type'] = walk_name
+            all_walks_data.append(df)
+        
+        combined_df = pd.concat(all_walks_data, ignore_index=True)
+        csv = combined_df.to_csv(index=False)
+        
+        # Single download button for all walks
+        st.download_button(
+            label="Bajar todas las coordenadas como CSV",
+            data=csv,
+            file_name="todas_las_coordenadas.csv",
+            mime="text/csv"
+        )
 
 if __name__ == "__main__":
     main()
